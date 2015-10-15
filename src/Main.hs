@@ -9,15 +9,25 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 
 data C = Wall
-       | Cl Cell
+       | Cl (Int, Int)
   deriving (Eq, Ord)
 
 instance Show C where
   show Wall   = "Wall"
   show (Cl _) = "Cell"
 
-data Cell = Cell { row :: !Int, col :: !Int, links :: Map Cell Bool, north :: C, south :: C, east :: C, west :: C  }
+data Cell = Cell { row :: !Int
+                 , col :: !Int
+                 , links :: Map (Int, Int) Bool
+                 , north :: C
+                 , south :: C
+                 , east :: C
+                 , west :: C  }
     deriving (Ord)
+
+coords :: Cell -> (Int, Int)
+coords c = (row c, col c)
+{-# INLINE coords #-}
 
 instance Show Cell where
   show (Cell r c _ n s e w) = "|C(" ++ show r ++ "," ++ show c ++ ") " ++ "N-" ++ show n ++ ",S-" ++ show s ++ ",E-" ++ show e ++ ",W-" ++ show w ++ "|"
@@ -33,8 +43,9 @@ renderRow cells = let (top, bottom) = foldl' toS ("", "") cells in
 instance Show Grid where
   show (Grid r c g) = prelude ++ "\n" ++ body
       where
-        prelude = "+" ++ (concat $ replicate c "---+")
+        prelude = "+" ++ concat (replicate c "---+")
         body = intercalate "\n" (V.toList $ V.map renderRow g)
+
 toS (top, bottom) c@(Cell _ _ _ _ s e _) = (top ++ "   " ++ boundary c e, bottom ++ sBoundary c s ++ "+")
 sBoundary c Wall = "---"
 -- The C' values here are the OLD values of c', pre links!
@@ -54,7 +65,7 @@ newCell r c grid = Cell r c Map.empty (get grid n) (get grid s) (get grid e) (ge
       w = (r, c - 1)
 
 get :: Grid -> (Int, Int) -> C
-get (Grid rows cols g ) a@(r, c) = if inBounds then Cl ((g V.! r) V.! c) else Wall
+get (Grid rows cols g ) a@(r, c) = if inBounds then Cl (r, c) else Wall
   where inBounds = r >= 0 && r < rows && c >= 0 && c < cols
 
 newGrid :: Int -> Int -> Grid
@@ -66,20 +77,23 @@ newGrid r c = gg
 linkCells :: Grid -> Cell -> Cell -> Grid
 linkCells g a b = replace b' $ replace a' g
     where
-      a' = a { links = Map.insert b True (links a) }
-      b' = b { links = Map.insert a True (links b) }
+      a' = a { links = Map.insert (coords b) True (links a) }
+      b' = b { links = Map.insert (coords a) True (links b) }
 
 unlinkCells :: Cell -> Cell -> (Cell, Cell)
 unlinkCells a b = (a', b')
     where
-      a' = a { links = Map.delete b (links a) }
-      b' = b { links = Map.delete a (links b) }
+      a' = a { links = Map.delete (coords b) (links a) }
+      b' = b { links = Map.delete (coords a) (links b) }
 
-linked :: Cell -> Cell -> Bool
+linked :: (Int, Int) -> Cell -> Bool
 linked a b = Map.member a (links b)
 
-neighbors :: Cell -> [Cell]
-neighbors (Cell _ _ _ n s e w) = [c | Cl c <- [n, s, e, w]]
+lookupCell :: Grid -> (Int, Int) -> Cell
+lookupCell g (r, c) = (grid g V.! r) V.! c
+
+neighbors :: Grid -> Cell -> [Cell]
+neighbors g (Cell _ _ _ n s e w) = [lookupCell g c | Cl c <- [n, s, e, w]]
 
 eachCell :: Monad m => Grid -> (Grid -> Cell -> m Grid) -> m Grid
 eachCell g@(Grid r c rows) f = V.foldM' foldRow g rows
@@ -88,7 +102,7 @@ eachCell g@(Grid r c rows) f = V.foldM' foldRow g rows
 
 replace :: Cell -> Grid -> Grid
 replace c@(Cell row col _ _ _ _ _) g = g { grid = (grid g) V.// [(row, gRow)] }
-   where gRow = ((grid g) V.! row) V.// [(col, c)]
+   where gRow = (grid g V.! row) V.// [(col, c)]
 
 binaryTree :: Int -> Int -> IO Grid
 binaryTree rows cols = do
@@ -102,7 +116,7 @@ binaryTree rows cols = do
       let candidates = [cx | Cl cx <- [n, e]]
       if not (null candidates) then do
         i <- uniformR (0, length candidates - 1) rand
-        return $ linkCells g (candidates !! i) c
+        return $ linkCells g (lookupCell g $ candidates !! i) c
       else return g
 
 main :: IO ()
