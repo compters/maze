@@ -3,11 +3,10 @@
 module Maze where
 
 import Debug.Trace
-import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.Word
 import Control.Monad
 import Control.Lens
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.List
 import Data.Vector (Vector, (!), (//))
 import qualified Data.Vector as V
@@ -128,17 +127,29 @@ neighbors c = sequence [getCell cl | Cl cl <- [n, s, e, w]]
       e = c^.east
       w = c^.west
 
+coinToss :: MazeM a Bool
+coinToss = do
+  r <- use rand
+  liftIO $ uniform r
+
 pickRandomly :: [x] -> MazeM a x
 pickRandomly xs = do
   r <- use rand
   i <- liftIO $ uniformR (0, length xs - 1) r
   return $ xs !! i
 
-newMaze :: (Int, Int) -> a -> IO (Maze a)
-newMaze (rows, cols) v = do
-  rnd <- createSystemRandom
+pickRandomlyM :: [x] -> MazeM a (Maybe x)
+pickRandomlyM [] = return Nothing
+pickRandomlyM xs = Just <$> pickRandomly xs
+
+newMaze :: (Int, Int) -> a -> Maybe Word32 -> IO (Maze a)
+newMaze (rows, cols) v rSeed = do
+  rnd <- rndGen
   return $ Maze rows cols newGrid rnd
   where
+    rndGen = case rSeed of
+      Just seed -> initialize (V.singleton seed)
+      Nothing -> createSystemRandom
     newGrid     = V.fromList [newRow r | r <- [0 .. rows - 1]]
     newRow r = V.fromList [newCell (r, c) | c <- [0 .. cols - 1]]
     newCell (r, c) = Cell r c Set.empty n s e w v 
@@ -187,6 +198,38 @@ binaryTree = eachCell_ walker
           cell' <- pickRandomly candidates >>= getCell
           linkCells cell cell'
 
+linkCl :: Cell a -> C -> MazeM a ()
+linkCl _ Wall = return ()
+linkCl cell (Cl c) = do
+  cl <- getCell c
+  linkCells cell cl
+
+sidewinder :: MazeM a ()
+sidewinder = void $ eachCell ([], 1) winder
+    where
+      atWall Wall = True
+      atWall _ = False
+
+      linkNorth (Just cl) = do
+        cell <- getCell cl
+        linkCl cell (cell^.north)
+      linkNorth Nothing = return ()
+
+      winder (run, rrow) cell = do
+        let run' = if rrow == (cell^.row) then (coords cell) : run else [coords cell]
+        let atEasternBoundry = atWall $ cell^.east
+        let atNorthernBoundary = atWall $ cell^.north
+        coinResult <- coinToss
+        let closeOut = atEasternBoundry || (not atNorthernBoundary && coinResult)
+        if closeOut then
+          do
+            candidate <- pickRandomlyM run'
+            linkNorth candidate
+            return ([], cell^.row)
+          else do
+            linkCl cell (cell^.east)
+            return (run', cell^.row)
+
 execMaze :: MazeM a b -> Maze a -> IO (Maze a)
 execMaze f = execStateT (eval f)
 
@@ -219,9 +262,7 @@ distanceFill :: (Int, Int) -> MazeM Int (Int, (Int, Int))
 distanceFill start = do
   startCell <- getCell start
   update $ startCell & val .~ 0
-  res <- walkLinks 0 (Set.toList $ startCell^.links) (0, start)
-  traceShowM res
-  return res
+  walkLinks 0 (Set.toList $ startCell^.links) (0, start)
     where
       walkLinks _ [] biggest = return biggest
       walkLinks c cells (n, bg) = do
