@@ -286,6 +286,11 @@ mapCells fn m = m & grid %~ newGrid
       updateRow = V.map updateCellValue
       updateCellValue cell = cell { _val = fn cell }
 
+blankCells :: MazeM a (Maze Char)
+blankCells = do
+  mz <- get
+  return $ mapCells (const ' ') mz
+
 djikstra :: MazeM Int (Maze Char)
 djikstra = do
   path <- distanceFillAndWalk

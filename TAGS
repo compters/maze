@@ -31,7 +31,7 @@ getDataFileName getDataFileName32,33
 ./Setup.hs,15
 main main1,2
 
-./src/Main.hs,428
+./src/Main.hs,465
 module Main Main0,1
 data MazeOptions MazeOptions7,8
 data MazeOptions = MazeOptions MazeOptions7,8
@@ -39,15 +39,16 @@ data MazeOptions = MazeOptions MazeOptions7,8
   , colCount colCount9,10
   , useSidewinder useSidewinder10,11
   , showDistances showDistances11,12
-  , randomSeed randomSeed12,13
-runMazeIO runMazeIO16,17
+  , hideSolution hideSolution12,13
+  , randomSeed randomSeed13,14
 runMazeIO runMazeIO17,18
-main main27,28
-main main28,29
-optionsParser optionsParser32,33
-optionsParser optionsParser33,34
+runMazeIO runMazeIO18,19
+main main29,30
+main main30,31
+optionsParser optionsParser34,35
+optionsParser optionsParser35,36
 
-./src/Maze.hs,2636
+./src/Maze.hs,2698
 class (Show a) => GShow GShow16,17
 class (Show a) => GShow GShow16,17
   gshow gshow17,18
@@ -139,5 +140,7 @@ distanceFillRand distanceFillRand278,279
 distanceFillRand distanceFillRand279,280
 mapCells mapCells281,282
 mapCells mapCells282,283
-djikstra djikstra288,289
-djikstra djikstra289,290
+blankCells blankCells288,289
+blankCells blankCells289,290
+djikstra djikstra293,294
+djikstra djikstra294,295
