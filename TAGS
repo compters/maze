@@ -31,22 +31,25 @@ getDataFileName getDataFileName32,33
 ./Setup.hs,15
 main main1,2
 
-./src/Main.hs,465
+./src/Main.hs,558
 module Main Main0,1
-data MazeOptions MazeOptions7,8
-data MazeOptions = MazeOptions MazeOptions7,8
-    rowCount rowCount8,9
-  , colCount colCount9,10
-  , useSidewinder useSidewinder10,11
-  , showDistances showDistances11,12
-  , hideSolution hideSolution12,13
-  , randomSeed randomSeed13,14
-runMazeIO runMazeIO17,18
-runMazeIO runMazeIO18,19
-main main29,30
-main main30,31
-optionsParser optionsParser34,35
-optionsParser optionsParser35,36
+data MazeOptions MazeOptions8,9
+data MazeOptions = MazeOptions MazeOptions8,9
+    rowCount rowCount9,10
+  , colCount colCount10,11
+  , useSidewinder useSidewinder11,12
+  , showDistances showDistances12,13
+  , hideSolution hideSolution13,14
+  , randomSeed randomSeed14,15
+  , outputImg outputImg15,16
+  , imgWidth imgWidth16,17
+  , imgHeight imgHeight17,18
+runMazeIO runMazeIO21,22
+runMazeIO runMazeIO22,23
+main main37,38
+main main38,39
+optionsParser optionsParser42,43
+optionsParser optionsParser43,44
 
 ./src/Maze.hs,2698
 class (Show a) => GShow GShow16,17
@@ -144,3 +147,16 @@ blankCells blankCells288,289
 blankCells blankCells289,290
 djikstra djikstra293,294
 djikstra djikstra294,295
+
+./src/Output.hs,240
+module Output Output1,2
+d d10,11
+d d11,12
+renderMaze renderMaze13,14
+renderMaze renderMaze14,15
+drawCell drawCell22,23
+drawCell drawCell23,24
+test test33,34
+test test34,35
+drawMaze drawMaze39,40
+drawMaze drawMaze40,41

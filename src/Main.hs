@@ -4,6 +4,7 @@ import Options.Applicative
 import Maze
 import Control.Applicative
 import Data.Word
+import Output
 
 data MazeOptions = MazeOptions {
     rowCount      :: Int
@@ -12,20 +13,27 @@ data MazeOptions = MazeOptions {
   , showDistances :: Bool
   , hideSolution  :: Bool
   , randomSeed    :: Maybe Word32
- } deriving (Show, Eq)
+  , outputImg     :: Maybe String
+  , imgWidth      :: Int
+  , imgHeight     :: Int
+  } deriving (Show, Eq)
 
 
 runMazeIO :: MazeOptions -> IO ()
-runMazeIO (MazeOptions rows cols sw dist hideS rSeed) = do
+runMazeIO (MazeOptions rows cols sw dist hideS rSeed imgPath imgW imgH) = do
   maze <- newMaze (rows, cols) 0 rSeed
   (resMaze, stateMaze) <- runMaze (algo >> processor) maze
   if dist then
-    print stateMaze
+    ioAct stateMaze
     else
-      print resMaze
+      ioAct resMaze
     where
       processor = if hideS then blankCells else djikstra
       algo = if sw then sidewinder else binaryTree
+      ioAct :: GShow a => Maze a -> IO ()
+      ioAct = case imgPath of
+        Just p -> drawMaze p imgW imgH
+        Nothing -> print
 
 main :: IO ()
 main = execParser opts >>= runMazeIO
@@ -55,3 +63,13 @@ optionsParser = MazeOptions
                               (long "random"
                                <> short 'x'
                                <> help "The seed for the random number generator"))
+                <*> optional (strOption
+                             (long "output"
+                             <> short 'o'
+                             <> help "The filename to output to instead of ASCII"))
+                <*> option auto (long "width"
+                                <> value 400
+                                <> help "Image width")
+                <*> option auto (long "height"
+                                <> value 400
+                                <> help "Image height")
