@@ -25,16 +25,16 @@ runMazeIO (MazeOptions rows cols sw ws dist hideS rSeed imgPath imgW imgH) = do
   maze <- newMaze (rows, cols) 0 rSeed
   (resMaze, stateMaze) <- runMaze (algo >> processor) maze
   if dist then
-    ioAct stateMaze
+    ioAct stateMaze (colourCell stateMaze)
     else
-      ioAct resMaze
+      ioAct resMaze outputContents
     where
       processor = if hideS then blankCells else djikstra
       algo = if sw then sidewinder else if ws then wilsons else binaryTree
-      ioAct :: GShow a => Maze a -> IO ()
-      ioAct = case imgPath of
-        Just p -> drawMaze p imgW imgH
-        Nothing -> print
+      ioAct :: GShow a => Maze a -> CellRenderer a ->  IO ()
+      ioAct m r = case imgPath of
+        Just p -> drawMazeWith r p imgW imgH m
+        Nothing -> print m
 
 main :: IO ()
 main = execParser opts >>= runMazeIO

@@ -67,5 +67,8 @@ drawMazeWith cellRenderer filePath width height maze = renderCairo filePath size
     size = mkSizeSpec2D (Just $ fromIntegral width) (Just $ fromIntegral height)
     renderedMaze = renderMazeWith cellRenderer maze
 
+drawMazeNoop :: CellRenderer a
+drawMazeNoop _ d = d
+
 drawMaze :: FilePath -> Int -> Int -> Maze a -> IO ()
-drawMaze = drawMazeWith (\ _ d -> d) 
+drawMaze = drawMazeWith drawMazeNoop 
