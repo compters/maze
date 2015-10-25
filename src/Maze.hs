@@ -4,6 +4,8 @@ module Maze where
 
 import Debug.Trace
 import Data.Word
+import Data.Sequence (Seq)
+import qualified Data.Sequence as Sq
 import Control.Monad
 import Control.Lens
 import Control.Monad.State.Strict
@@ -41,8 +43,19 @@ data Cell a = Cell {
       , _west  :: C
       , _val   :: a
   }
-  deriving (Show, Eq)
+  deriving (Show)
 makeLenses ''Cell
+
+coords :: Cell a -> (Int, Int)
+coords c = (c^.row, c^.col)
+
+instance Eq (Cell a) where
+  a == b = coords a == coords b
+
+instance Ord (Cell a) where
+  compare a b = case compare (a^.row) (b^.row) of
+                   EQ -> compare (a^.col) (b^.col)
+                   x -> x
 
 type Row a = Vector (Cell a)
 
@@ -78,6 +91,14 @@ topWall = concat $ replicate cellWidth "-"
 cellGap = concat $ replicate cellWidth " "
 cellSection = topWall ++ "+"
 
+allCells :: MazeM a (Vector (Cell a))
+allCells = do
+  rows <- use grid
+  return $ V.foldl1 mappend rows
+
+allCells' :: Maze a -> Vector (Cell a)
+allCells' mz = V.foldl1 mappend (mz^.grid)
+
 update :: Cell x -> MazeM x ()
 update c = grid %= replaceRow
   where
@@ -95,8 +116,6 @@ eachCell v fn = do
 eachCell_ :: (Cell a -> MazeM a ()) -> MazeM a ()
 eachCell_ fn = eachCell () (\ _ c -> fn c)
 
-coords :: Cell a -> (Int, Int)
-coords c = (c^.row, c^.col)
 
 getCell :: (Int, Int) -> MazeM a (Cell a)
 getCell (r, c) = do
@@ -104,7 +123,7 @@ getCell (r, c) = do
   return $ (g ! r) ! c
 
 linkCells :: Cell a -> Cell a -> MazeM a ()
-linkCells a b = do
+linkCells a b = when (a /= b) $ do
   update a'
   update b'
   where
@@ -131,6 +150,12 @@ coinToss :: MazeM a Bool
 coinToss = do
   r <- use rand
   liftIO $ uniform r
+
+sampleSet :: Set x -> MazeM a x
+sampleSet xs = do
+  r <- use rand
+  i <- liftIO $ uniformR (0, Set.size xs - 1) r
+  return $ Set.elemAt i xs
 
 pickRandomly :: [x] -> MazeM a x
 pickRandomly xs = do
@@ -204,6 +229,49 @@ linkCl cell (Cl c) = do
   cl <- getCell c
   linkCells cell cl
 
+type Path a = Seq (Cell a)
+
+wilsons :: (Ord a, Show a) => MazeM a ()
+wilsons = do
+  cells <- allCells
+  let unvisited = Set.fromList (V.toList $ V.map coords cells)
+  startCoords <- sampleSet unvisited
+  startCell <- getCell startCoords
+  nextCell <- neighbors startCell >>= pickRandomly
+  unvisited' <- meander (Set.delete startCoords unvisited) (Sq.fromList [startCoords]) nextCell
+  loop walk unvisited' 
+  where loop fn set = unless (Set.null set) (fn set >>= loop fn) 
+        walk unvisited = do
+          c <- sampleSet unvisited
+          cell <- getCell c
+          nextCell <- neighbors cell >>= pickRandomly
+          meander unvisited (Sq.fromList [c]) nextCell
+
+        meander unvisited path cell = if not (Set.member (coords cell) unvisited) then finalisePath unvisited (path |> coords cell)
+                                                                                  else step unvisited path cell
+        step unvisited path cell = do
+              nb <- neighbors cell
+              nextCell <- pickRandomly nb
+              case Sq.elemIndexL (coords nextCell) path of
+                Just i ->  meander unvisited (Sq.take (i + 1) path) nextCell
+                Nothing -> meander unvisited (path |> coords cell) nextCell
+
+        finalisePath unvisited path = do
+          let pairs = Sq.zip path (Sq.drop 1 path)
+          foldM linkAndRemove unvisited pairs
+
+        linkAndRemove unvisited (c, c') = do
+          cell <- getCell c
+          cell' <- getCell c'
+          linkCells cell cell'
+          return $ Set.delete c' . Set.delete c $ unvisited
+
+testIt = do
+  m <- newMaze (10, 10) 0 (Just 33)
+  mz <- execMaze (wilsons >> distanceFillRand) m 
+--  drawMaze "test.png" 800 800 mz
+  print mz
+
 sidewinder :: MazeM a ()
 sidewinder = void $ eachCell ([], 1) winder
     where
@@ -265,7 +333,7 @@ distanceFill start = do
   walkLinks 0 (Set.toList $ startCell^.links) (0, start)
     where
       walkLinks _ [] biggest = return biggest
-      walkLinks c cells (n, bg) = do
+      walkLinks c cells _ = do
         frontier <- mapM (updateCell (c + 1)) cells
         walkLinks (c + 1) (concat frontier) (c + 1, head cells)
       updateCell c crds = do

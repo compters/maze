@@ -10,6 +10,7 @@ data MazeOptions = MazeOptions {
     rowCount      :: Int
   , colCount      :: Int
   , useSidewinder :: Bool
+  , useWilsons    :: Bool
   , showDistances :: Bool
   , hideSolution  :: Bool
   , randomSeed    :: Maybe Word32
@@ -20,7 +21,7 @@ data MazeOptions = MazeOptions {
 
 
 runMazeIO :: MazeOptions -> IO ()
-runMazeIO (MazeOptions rows cols sw dist hideS rSeed imgPath imgW imgH) = do
+runMazeIO (MazeOptions rows cols sw ws dist hideS rSeed imgPath imgW imgH) = do
   maze <- newMaze (rows, cols) 0 rSeed
   (resMaze, stateMaze) <- runMaze (algo >> processor) maze
   if dist then
@@ -29,7 +30,7 @@ runMazeIO (MazeOptions rows cols sw dist hideS rSeed imgPath imgW imgH) = do
       ioAct resMaze
     where
       processor = if hideS then blankCells else djikstra
-      algo = if sw then sidewinder else binaryTree
+      algo = if sw then sidewinder else if ws then wilsons else binaryTree
       ioAct :: GShow a => Maze a -> IO ()
       ioAct = case imgPath of
         Just p -> drawMaze p imgW imgH
@@ -53,6 +54,9 @@ optionsParser = MazeOptions
                 <*> switch (long "sidewinder"
                             <> short 's'
                             <> help "Use sidewinder instead of binary tree")
+                <*> switch (long "wilsons"
+                            <> short 'w'
+                            <> help "Use wilson's algorithm instead of binary tree")
                 <*> switch (long "distances"
                             <> short 'd'
                             <> help "Display distances to nodes instead of solution")

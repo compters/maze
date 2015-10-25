@@ -31,132 +31,149 @@ getDataFileName getDataFileName32,33
 ./Setup.hs,15
 main main1,2
 
-./src/Main.hs,558
+./src/Main.hs,591
 module Main Main0,1
 data MazeOptions MazeOptions8,9
 data MazeOptions = MazeOptions MazeOptions8,9
     rowCount rowCount9,10
   , colCount colCount10,11
   , useSidewinder useSidewinder11,12
-  , showDistances showDistances12,13
-  , hideSolution hideSolution13,14
-  , randomSeed randomSeed14,15
-  , outputImg outputImg15,16
-  , imgWidth imgWidth16,17
-  , imgHeight imgHeight17,18
-runMazeIO runMazeIO21,22
+  , useWilsons useWilsons12,13
+  , showDistances showDistances13,14
+  , hideSolution hideSolution14,15
+  , randomSeed randomSeed15,16
+  , outputImg outputImg16,17
+  , imgWidth imgWidth17,18
+  , imgHeight imgHeight18,19
 runMazeIO runMazeIO22,23
-main main37,38
+runMazeIO runMazeIO23,24
 main main38,39
-optionsParser optionsParser42,43
+main main39,40
 optionsParser optionsParser43,44
+optionsParser optionsParser44,45
 
-./src/Maze.hs,2698
-class (Show a) => GShow GShow16,17
-class (Show a) => GShow GShow16,17
-  gshow gshow17,18
-  gshow gshow18,19
-instance instance20,21
-data C C29,30
-data C = WallWall29,30
-       | Cl Cl30,31
-data Cell Cell33,34
-data Cell a = Cell Cell33,34
-        _row _row34,35
-      , _col _col35,36
-      , _links _links36,37
-      , _north _north37,38
-      , _south _south38,39
-      , _east _east39,40
-      , _west _west40,41
-      , _val _val41,42
-type Row Row46,47
-type Row a a46,47
-data Maze Maze48,49
-data Maze a = Maze Maze48,49
-    _rowCount _rowCount49,50
-  , _colCount _colCount50,51
-  , _grid _grid51,52
-  , _rand _rand52,53
-type MZ MZ70,71
-type MZ x x70,71
-newtype MazeM MazeM72,73
-newtype MazeM x a = MazeM MazeM72,73
-newtype MazeM x a = MazeM { eval eval72,73
-cellWidth cellWidth75,76
-topWall topWall76,77
-cellGap cellGap77,78
-cellSection cellSection78,79
-update update80,81
-update update81,82
-eachCell eachCell86,87
-eachCell eachCell87,88
-eachCell_ eachCell_94,95
-eachCell_ eachCell_95,96
-coords coords97,98
-coords coords98,99
-getCell getCell100,101
-getCell getCell101,102
-linkCells linkCells105,106
-linkCells linkCells106,107
-unlinkCells unlinkCells113,114
-unlinkCells unlinkCells114,115
-neighbors neighbors121,122
-neighbors neighbors122,123
-coinToss coinToss129,130
-coinToss coinToss130,131
-pickRandomly pickRandomly134,135
-pickRandomly pickRandomly135,136
-pickRandomlyM pickRandomlyM140,141
-pickRandomlyM pickRandomlyM141,142
-newMaze newMaze144,145
-newMaze newMaze145,146
-linked linked165,166
-linked linked166,167
-renderRow renderRow168,169
-renderRow renderRow169,170
-padContents padContents172,173
-padContents padContents173,174
-renderCell renderCell179,180
-renderCell renderCell180,181
-binaryTree binaryTree191,192
-binaryTree binaryTree192,193
-linkCl linkCl200,201
-linkCl linkCl201,202
-sidewinder sidewinder206,207
-sidewinder sidewinder207,208
-execMaze execMaze232,233
-execMaze execMaze233,234
-evalMaze evalMaze235,236
-evalMaze evalMaze236,237
-runMaze runMaze238,239
-runMaze runMaze239,240
-uniformM uniformM241,242
-uniformM uniformM242,243
-randomWestWallCoord randomWestWallCoord246,247
-randomWestWallCoord randomWestWallCoord247,248
-randomCoord randomCoord252,253
-randomCoord randomCoord253,254
-distanceFill distanceFill260,261
-distanceFill distanceFill261,262
-distanceFillRand distanceFillRand278,279
-distanceFillRand distanceFillRand279,280
-mapCells mapCells281,282
-mapCells mapCells282,283
-blankCells blankCells288,289
-blankCells blankCells289,290
-djikstra djikstra293,294
-djikstra djikstra294,295
+./src/Maze.hs,2970
+class (Show a) => GShow GShow18,19
+class (Show a) => GShow GShow18,19
+  gshow gshow19,20
+  gshow gshow20,21
+instance instance22,23
+data C C31,32
+data C = WallWall31,32
+       | Cl Cl32,33
+data Cell Cell35,36
+data Cell a = Cell Cell35,36
+        _row _row36,37
+      , _col _col37,38
+      , _links _links38,39
+      , _north _north39,40
+      , _south _south40,41
+      , _east _east41,42
+      , _west _west42,43
+      , _val _val43,44
+coords coords48,49
+coords coords49,50
+type Row Row59,60
+type Row a a59,60
+data Maze Maze61,62
+data Maze a = Maze Maze61,62
+    _rowCount _rowCount62,63
+  , _colCount _colCount63,64
+  , _grid _grid64,65
+  , _rand _rand65,66
+type MZ MZ83,84
+type MZ x x83,84
+newtype MazeM MazeM85,86
+newtype MazeM x a = MazeM MazeM85,86
+newtype MazeM x a = MazeM { eval eval85,86
+cellWidth cellWidth88,89
+topWall topWall89,90
+cellGap cellGap90,91
+cellSection cellSection91,92
+allCells allCells93,94
+allCells allCells94,95
+allCells' allCells'98,99
+allCells' allCells'99,100
+update update101,102
+update update102,103
+eachCell eachCell107,108
+eachCell eachCell108,109
+eachCell_ eachCell_115,116
+eachCell_ eachCell_116,117
+getCell getCell119,120
+getCell getCell120,121
+linkCells linkCells124,125
+linkCells linkCells125,126
+unlinkCells unlinkCells132,133
+unlinkCells unlinkCells133,134
+neighbors neighbors140,141
+neighbors neighbors141,142
+coinToss coinToss148,149
+coinToss coinToss149,150
+sampleSet sampleSet153,154
+sampleSet sampleSet154,155
+pickRandomly pickRandomly159,160
+pickRandomly pickRandomly160,161
+pickRandomlyM pickRandomlyM165,166
+pickRandomlyM pickRandomlyM166,167
+newMaze newMaze169,170
+newMaze newMaze170,171
+linked linked190,191
+linked linked191,192
+renderRow renderRow193,194
+renderRow renderRow194,195
+padContents padContents197,198
+padContents padContents198,199
+renderCell renderCell204,205
+renderCell renderCell205,206
+binaryTree binaryTree216,217
+binaryTree binaryTree217,218
+linkCl linkCl225,226
+linkCl linkCl226,227
+type Path Path231,232
+wilsons wilsons233,234
+wilsons wilsons234,235
+testIt testIt268,269
+sidewinder sidewinder274,275
+sidewinder sidewinder275,276
+execMaze execMaze300,301
+execMaze execMaze301,302
+evalMaze evalMaze303,304
+evalMaze evalMaze304,305
+runMaze runMaze306,307
+runMaze runMaze307,308
+uniformM uniformM309,310
+uniformM uniformM310,311
+randomWestWallCoord randomWestWallCoord314,315
+randomWestWallCoord randomWestWallCoord315,316
+randomCoord randomCoord320,321
+randomCoord randomCoord321,322
+distanceFill distanceFill328,329
+distanceFill distanceFill329,330
+distanceFillRand distanceFillRand346,347
+distanceFillRand distanceFillRand347,348
+mapCells mapCells349,350
+mapCells mapCells350,351
+blankCells blankCells356,357
+blankCells blankCells357,358
+djikstra djikstra361,362
+djikstra djikstra362,363
 
-./src/Output.hs,240
+./src/Output.hs,497
 module Output Output1,2
-d d10,11
-d d11,12
-renderMaze renderMaze13,14
-renderMaze renderMaze14,15
-drawCell drawCell22,23
-drawCell drawCell23,24
-test test33,34
-test test34,35
-drawMaze drawMaze39,40
-drawMaze drawMaze40,41
+type CellRenderer CellRenderer9,10
+type CellRenderer a a9,10
+renderMazeWith renderMazeWith11,12
+renderMazeWith renderMazeWith12,13
+drawCell drawCell24,25
+drawCell drawCell25,26
+outputContents outputContents36,37
+outputContents outputContents37,38
+colourCell colourCell42,43
+colourCell colourCell43,44
+test test55,56
+test test56,57
+drawMazeWith drawMazeWith63,64
+drawMazeWith drawMazeWith64,65
+drawMaze drawMaze69,70
+drawMaze drawMaze70,71
